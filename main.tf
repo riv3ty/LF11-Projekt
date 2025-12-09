@@ -77,8 +77,9 @@ resource "proxmox_virtual_environment_container" "webserver" {
     inline = [
       "sleep 10",
       "apt-get update",
-      "apt-get install -y neofetch htop git nginx",
+      "apt-get install -y neofetch htop git nginx prometheus-node-exporter",
       "systemctl enable --now nginx",
+      "systemctl enable --now prometheus-node-exporter",
       "echo '<h1>Deployed with Terraform & SSH-Key Auth!</h1>' > /var/www/html/index.nginx-debian.html"
     ]
 
