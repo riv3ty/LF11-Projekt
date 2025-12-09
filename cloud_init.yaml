@@ -1,0 +1,34 @@
+#cloud-config
+users:
+  - name: sysadmin
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    groups: sudo
+    shell: /bin/bash
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC/23U3FvKInPZKrg6YDjH7tEhjz15CHulIc2HVwIlKseb5gsAce0lk+N57wbC0qzg++oD8WKuAzCKVMg71vpLSlN9AGnB+gUUahc/50GdQ8xD46UMRZnosVQFPD/pDEtdsc34ZZSP5JGyr4WK/8rbAdmMTolf9XO3kQzeHhOFp/h9rk5mCXwMJRDGzwRjP4eIKkDa/AX1sAxKzHS2pM8KK1yrWyp+e1K9LNl2a8nv//0XWOz+5UcdSBThUWjUhOC3yG58UOm8kkRZkUDUVz+ibLObfPCuqxN10nSzd6oZALL5cgWrSxve9SjICfPe3Ou2fkAiPMOPZo9dBKG+HvPON rsa-key-20240816
+
+ssh_pwauth: false
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - htop
+  - git
+  - neofetch
+  - unattended-upgrades
+  - apt-listchanges
+
+runcmd:
+  - systemctl enable unattended-upgrades
+  - systemctl start unattended-upgrades
+  - echo 'Unattended-Upgrade::Automatic-Reboot "false";' >> /etc/apt/apt.conf.d/50unattended-upgrades
+  - echo 'Unattended-Upgrade::Automatic-Reboot-Time "03:00";' >> /etc/apt/apt.conf.d/50unattended-upgrades
+  - sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+  - sed -i 's/PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+  - sed -i 's/#PermitRootLogin yes/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config
+  - sed -i 's/PermitRootLogin yes/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config
+  - systemctl restart sshd
+
+final_message: "System setup complete. SSH password authentication disabled. Automatic security updates enabled."
