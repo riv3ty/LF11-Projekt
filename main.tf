@@ -36,7 +36,7 @@ resource "proxmox_virtual_environment_container" "webserver" {
     }
 
     dns {
-      server = "1.1.1.1"
+      servers = ["1.1.1.1"]
       domain = "local"
     }
 
@@ -76,8 +76,9 @@ resource "proxmox_virtual_environment_container" "webserver" {
   provisioner "remote-exec" {
     inline = [
       "sleep 10",
+      "export DEBIAN_FRONTEND=noninteractive",
       "apt-get update",
-      "apt-get install -y neofetch htop git nginx prometheus-node-exporter",
+      "apt-get install -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' neofetch htop git nginx prometheus-node-exporter",
       "systemctl enable --now nginx",
       "systemctl enable --now prometheus-node-exporter",
       "echo '<h1>Deployed with Terraform & SSH-Key Auth!</h1>' > /var/www/html/index.nginx-debian.html"
@@ -88,12 +89,14 @@ resource "proxmox_virtual_environment_container" "webserver" {
       user        = "root"
       private_key = file(var.private_key_path)
       host        = "${var.ip_network_prefix}.${85 + count.index}"
+      timeout     = "10m"
     }
   }
 }
 
 output "instance_ips" {
   description = "Die IP-Adressen der erstellten LXC-Container."
+  sensitive   = true
   value = {
     for instance in proxmox_virtual_environment_container.webserver :
     instance.initialization[0].hostname => "${var.ip_network_prefix}.${85 + index(proxmox_virtual_environment_container.webserver, instance)}"
